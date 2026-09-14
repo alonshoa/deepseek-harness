@@ -1,0 +1,28 @@
+# Hybrid local-worker + Codex-advisor MVP.
+#
+# Assumptions:
+# - The parent/worker agent is configured separately (for example an Ollama-backed Qwen model).
+# - @deepseek-ai/dsh-subagent-codex and @deepseek-ai/dsh-tool-subagent are installed in the Profile.
+# - Codex authentication/configuration is already available to the Profile.
+#
+# The worker owns the workspace. The Codex child is invoked synchronously through
+# `ask_advisor`, receives a standalone prompt and the same cwd, and returns only
+# its final answer to the parent session.
+
+- insert:
+    - id: subagent-codex-advisor
+      name: '@deepseek-ai/dsh-subagent-codex'
+      config:
+        providerName: codex-advisor
+        # `never` disables interactive approvals. In the current upstream
+        # provider it does NOT explicitly force sandbox: read-only; see README.
+        permissionMode: never
+
+    - id: tool-codex-advisor
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: codex-advisor
+        toolName: ask_advisor
+        enableRunInBackground: false
+        backgroundMode: one-shot
+        maxDepth: provider-managed
